@@ -1,0 +1,15 @@
+# Data processing
+pandas>=1.5.0
+numpy>=1.23.0
+
+# Database connectivity
+psycopg2-binary>=2.9.0
+
+# Configuration management
+python-dotenv>=0.20.0
+
+# Apache Airflow (optional, for Airflow DAGs)
+# apache-airflow>=2.9.0
+
+# Logging & monitoring (optional)
+# structlog>=22.0.0
