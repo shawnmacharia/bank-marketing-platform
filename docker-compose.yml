@@ -15,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./sql:/sql                 # <-- NEW: mount local sql folder at /sql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 5s
@@ -37,6 +38,9 @@ services:
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
       AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
       AIRFLOW__WEBSERVER__RBAC: "True"
+      AIRFLOW__WEBSERVER__WORKERS: "2"
+      AIRFLOW__WEBSERVER__WORKER_CLASS: "sync"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
       # Airflow needs psycopg2 installed; this env var tells the image to pip-install it on start.
       _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary"
     volumes:
@@ -45,6 +49,12 @@ services:
       - ./airflow/logs:/opt/airflow/logs
     ports:
       - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     command:
       - bash
       - -lc
@@ -57,12 +67,13 @@ services:
           --email "$AIRFLOW_ADMIN_EMAIL" \
           --password "$AIRFLOW_ADMIN_PASSWORD" || true &&
         airflow scheduler &
-        exec airflow webserver
+        exec airflow webserver --workers 2
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
-      timeout: 10s
-      retries: 5
+      timeout: 15s
+      retries: 10
+      start_period: 120s
 
 volumes:
   postgres_data:
