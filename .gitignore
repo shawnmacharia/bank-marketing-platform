@@ -1,0 +1,47 @@
+﻿# Python artefacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.manifest
+*.spec
+
+# Virtual env / poetry / conda
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+.conda/
+
+# Docker artefacts
+docker-compose.override.yml
+
+# Raw data files (large CSVs)
+data/raw/*.csv
+
+# Airflow logs & SQLite database (if you ever use a local SQLite backend)
+airflow/logs/
+airflow/airflow.db
+
+# DBT artefacts
+target/
+dbt_packages/
+profiles.yml
+
+# Jupyter notebooks
+.ipynb_checkpoints
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+
+# Power BI
+*.pbix

@@ -1,0 +1,67 @@
+services:
+  # -------------------------------------------------
+  # PostgreSQL – holds the data warehouse (schemas
+  # bronze/silver/gold/audit) and Airflow metadata
+  # -------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    env_file: .env # pulls POSTGRES_* vars
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------
+  # Airflow – LocalExecutor (single-process) for simplicity.
+  # -------------------------------------------------
+  airflow:
+    image: apache/airflow:2.9.0-python3.11
+    container_name: airflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env # pulls AIRFLOW_* vars
+    environment:
+      # Airflow core config via env vars
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+      AIRFLOW__WEBSERVER__RBAC: "True"
+      # Airflow needs psycopg2 installed; this env var tells the image to pip-install it on start.
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db upgrade &&
+               airflow users create \
+                 --username ${AIRFLOW_ADMIN_USERNAME} \
+                 --firstname Admin \
+                 --lastname User \
+                 --role Admin \
+                 --email ${AIRFLOW_ADMIN_EMAIL} \
+                 --password ${AIRFLOW_ADMIN_PASSWORD} ||
+               true &&
+               airflow scheduler &
+               airflow webserver"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
