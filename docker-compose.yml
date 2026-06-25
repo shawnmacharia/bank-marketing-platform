@@ -45,18 +45,19 @@ services:
       - ./airflow/logs:/opt/airflow/logs
     ports:
       - "8080:8080"
-    command: >
-      bash -c "airflow db upgrade &&
-               airflow users create \
-                 --username ${AIRFLOW_ADMIN_USERNAME} \
-                 --firstname Admin \
-                 --lastname User \
-                 --role Admin \
-                 --email ${AIRFLOW_ADMIN_EMAIL} \
-                 --password ${AIRFLOW_ADMIN_PASSWORD} ||
-               true &&
-               airflow scheduler &
-               airflow webserver"
+    command:
+      - bash
+      - -lc
+      - |
+        airflow db upgrade &&
+        airflow users create --username "$AIRFLOW_ADMIN_USERNAME" \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email "$AIRFLOW_ADMIN_EMAIL" \
+          --password "$AIRFLOW_ADMIN_PASSWORD" || true &&
+        airflow scheduler &
+        exec airflow webserver
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
