@@ -1,0 +1,17 @@
+{
+  "files.associations": {
+    "*.sql": "postgres"
+  },
+  "sqltools.connections": [
+    {
+      "name": "Postgres (local)",
+      "driver": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "bankmarketingplatform_db",
+      "username": "shawnmacharia",
+      "password": "Habariyako2020",
+      "ssl": false
+    }
+  ]
+}
