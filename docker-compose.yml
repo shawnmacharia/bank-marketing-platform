@@ -82,12 +82,15 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${AIRFLOW_ADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: True
     depends_on:
       - postgres
     ports:
       - "5050:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
 
 volumes:
   postgres_data:
