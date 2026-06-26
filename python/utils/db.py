@@ -18,12 +18,19 @@ load_dotenv(
 
 def _make_conn():
     """Create a new psycopg2 connection using the .env values."""
+    host = os.getenv("POSTGRES_HOST", "localhost")
+    port = int(os.getenv("POSTGRES_PORT", 5432))
+    dbname = os.getenv("POSTGRES_DB")
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    
+    # Always return connection attempt
     return psycopg2.connect(
-        host=os.getenv("POSTGRES_HOST", "localhost"),
-        port=int(os.getenv("POSTGRES_PORT", 5432)),
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
+        host=host,
+        port=port,
+        dbname=dbname,
+        user=user,
+        password=password,
     )
 
 @contextmanager
@@ -54,10 +61,6 @@ def get_cursor(commit: bool = False):
         finally:
             cur.close()
 
-# -------------------------------------------------------------------------
-# Simple audit-logging helper – used by the ingestion loader and the
-# data-quality runner.
-# -------------------------------------------------------------------------
 def log_etl_batch(
     batch_id: str,
     table_name: str,
